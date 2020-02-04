@@ -16,14 +16,18 @@ Compared with the original discussion group, we additionally support:
     A group can only be one channel's discussion group. Channels using this bot can share a discussion group.
 
 2. 保留对应的回复层级 | Keep the reply information.
+    ![image](https://user-images.githubusercontent.com/37735580/73739555-693a4080-4781-11ea-9d3d-d99a2603ab9c.png)
     
 3. 当讨论组的人回复了机器人转发的消息时, 通知被转发的消息的发送者. | Mention the poster when the message forwarded by the bot is replied in the discussion group.
+    ![image](https://user-images.githubusercontent.com/37735580/73739639-9c7ccf80-4781-11ea-8fa3-766e92e0eb14.png)
 
 4. 目前支持文字, 单一的 Photo, 以及单一的 Video 的内容修改. | Support message edition in texts and caption of photos and videos.
 
 5. 群组中 @admins 功能 | @admins in discussion group.
+    ![image](https://user-images.githubusercontent.com/37735580/73739706-b6b6ad80-4781-11ea-9987-f17c9d7f950e.png)
 
 6. 对于不可编辑以及暂不支持转发的消息会分成两条消息转发 | As for polls, video notes and other unmodifiable messages will be directly forward.
+    ![image](https://user-images.githubusercontent.com/37735580/73739781-d8179980-4781-11ea-8bef-be4767e3cd67.png)
 
 7. 带有 #noforward 的 文字, 视频, 单个图片将不会被转发. | Text, photo, video with a hash tag #noforward won't be forwarded.
 
