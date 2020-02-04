@@ -1,0 +1,31 @@
+<?php
+
+return [
+    'proxy' => env("TGBOT_PROXY",""),
+    'webhook_url' => env("TGBOT_WEBHOOK","/webhook"),
+    'channels' => [
+        频道id => 群组id,
+        ...
+    ],
+    'groups' => [
+        群组id => [
+            管理员1 ID,
+            管理员2 ID,
+            ...
+        ]
+    ],
+    'admins' => [
+        "管理员1姓 管理员1名" => 管理员1ID,
+        ...
+    ],
+    'admin_nickname' => [
+        管理员1ID => "管理员1昵称",
+        ...
+    ],
+    'self' => 机器人ID,
+    'templates' => [
+        'text' => "<a href=\"tg://user?id={userId}\">{user}</a> posted at {channel}:\n{text}",
+        'reply' => "Let me help you <a href=\"tg://user?id={userId}\">@{user}</a>.",
+    ],
+    'pin' => true,
+];
