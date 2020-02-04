@@ -31,7 +31,7 @@ Compared with the original discussion group, we additionally support:
 
 7. 带有 #noforward 的 文字, 视频, 单个图片将不会被转发. | Text, photo, video with a hash tag #noforward won't be forwarded.
 
-## 缺点 | Unsurpported.
+## 缺点 | Unsupported.
 如果使用本机器人替代原生讨论组, 失去的功能有:
 
 If you use this bot instead of the original discussion group, you can't:
