@@ -1,78 +1,129 @@
-<p align="center"><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="400"></p>
+# Telegram 讨论组机器人. Telegram Discussion Group Bot. 
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+本机器人替代了Telegram原生的频道讨论组, 并加以改进.
 
-## About Laravel
+This bot replaces and improves the original telegram channel discussion group.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 特性 | Features.
+相比于原生的频道讨论组, 额外支持的有:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Compared with the original discussion group, we additionally support:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. 多对一转发 | Many to one forwarding.
 
-## Learning Laravel
+    在原生的讨论组中, 每一个群组只能成为一个频道的讨论组. 使用本机器人即可支持多个频道共用同一个讨论组.
+    
+    A group can only be one channel's discussion group. Channels using this bot can share a discussion group.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+2. 保留对应的回复层级 | Keep the reply information.
+    
+3. 当讨论组的人回复了机器人转发的消息时, 通知被转发的消息的发送者. | Mention the poster when the message forwarded by the bot is replied in the discussion group.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+4. 目前支持文字, 单一的 Photo, 以及单一的 Video 的内容修改. | Support message edition in texts and caption of photos and videos.
 
-## Laravel Sponsors
+5. 群组中 @admins 功能 | @admins in discussion group.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+6. 对于不可编辑以及暂不支持转发的消息会分成两条消息转发 | As for polls, video notes and other unmodifiable messages will be directly forward.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
-- [Appoly](https://www.appoly.co.uk)
-- [OP.GG](https://op.gg)
+7. 带有 #noforward 的 文字, 视频, 单个图片将不会被转发. | Text, photo, video with a hash tag #noforward won't be forwarded.
 
-## Contributing
+## 缺点 | Unsurpported.
+如果使用本机器人替代原生讨论组, 失去的功能有:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+If you use this bot instead of the original discussion group, you can't:
 
-## Code of Conduct
+1. 当源消息被删除时, 自动删除转发的消息 | Automatically delete the forwarded message 
+    由于 Telegram 机器人的API的限制, 消息被删除时机器人不会收到通知, 因此无法自动删除转发的消息.
+    Due to the limitations of the telegram bot API, the bot isn't notified when a message is deleted, therefor the bot can't delete the forwarded message.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+2. 目前, 由多个图片组成的 mediagroup 在转发的时候会分开转发. | For now, mediagroup will be forwarded separately.
 
-## Security Vulnerabilities
+3. 原生的一键加入讨论群按钮 | The original "Join discussion group" button in the channel.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
+## 需求 | Requirements.
+1. PHP 7.2 及以上 | PHP 7.2 minimum.
+2. Mysql 数据库. | A Mysql database.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 安装 | Installation && Deployment.
+
+1. 按照 [Laravel](//github.com/laravel/laravel) 准备环境.
+2. clone代码, 并把http根目录设置为public文件夹, 关闭 open_base_dir 防跨站相关选项. 配置https.
+3. `composer install`
+4. 修改.env中的配置 (仅需最上面的网址, mysql相关, 以及最下面的三个)
+5. `php artisan migrate`
+6. 将 config/tgbot.php 重命名为 config/tgbot.php 
+7. 修改config/tgbot.php中的配置
+8. 访问 /setWebhook 来配置webhook.
+9. Enjoy!
+
+## 配置 | Configuration.
+
+### ENV
+```dotenv
+APP_URL=http://localhost # 网站根目录的https://地址.
+
+# MYSQL 相关
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=root
+DB_PASSWORD=
+
+TELEGRAM_BOT_TOKEN=123456789:xxxxxxx # Bot token
+TGBOT_PROXY= # 代理, 不需要可留空 | Proxy used visiting telegram's API. Empty if not needed.
+TGBOT_WEBHOOK=/webhook # Webhook地址, 建议随机一点.  | A random address for the webhook.
+
+```
+
+### config/tgbot.php
+
+```php
+<?php
+
+return [
+    'proxy' => env("TGBOT_PROXY",""),
+    'webhook_url' => env("TGBOT_WEBHOOK","/webhook"),
+    'channels' => [
+        123 => 234, // 频道id => 群组id | Channel ID => Group ID
+        ...
+    ],
+    'groups' => [
+        234 => [ // 群组ID | Group ID.
+            345,456,567 // 管理员ID | Admins ID
+        ]
+    ],
+    'admins' => [
+        "Firstname Lastname" => 345, // 管理员姓名 对应管理员id. | Admin's fullname => admin ID.
+        ...
+    ],
+    'admin_nickname' => [
+        345 => "管理员1昵称", // Admin nickname
+        ...
+    ],
+    'self' => 12345678, // 机器人ID | Bot id
+    'templates' => [
+        'text' => "<a href=\"tg://user?id={userId}\">{user}</a> posted at {channel}:\n{text}",
+        'reply' => "Let me help you <a href=\"tg://user?id={userId}\">@{user}</a>.",
+    ],
+    'pin' => true, // 是否置顶转发的消息 | Pin the forwarded message or not
+];
+```
+
+可以通过转发频道或群组消息给 @userinfobot 来获取频道或者群组ID.
+
+You can forward a message to @userinfobot to obtain a group or a channel ID.
+
+
+## 注意 | Attention.
+1. 机器人必须有在群组中发送, 修改, pin(如果开启了) 消息的权限.
+
+    The robot must have permission to send, edit, pin (If enabled) message in the group.
+    
+2. 频道必须开启 Author signature功能.
+
+    The Channel must enable author signature.
+
+3. 配置中的管理员全名必须正确, 否则会无法辨别Channel中消息的发送者.
+
+    The admin's fullname in the configuration must be correct to detect who sent message in the channel.

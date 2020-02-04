@@ -92,6 +92,17 @@ class WebhookController extends Controller
                         $global_args['reply_to_message_id'] = $forward->to_message_id;
                     }
                 }
+                $entities = $message->getEntities() ?? $message->getCaptionEntities();
+                if($entities){
+                    $text = $message->getText() ?? $message->getCaption();
+                    foreach ($entities as $entity){
+                        if($entity['type'] == 'hashtag'){
+                            if(substr($text,$entity['offset'],$entity['length']) == "#noforward"){
+                                return 'ok';
+                            }
+                        }
+                    }
+                }
                 if($message->isType('text')){
                     try {
                         $args = array_merge([
