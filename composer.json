@@ -14,7 +14,8 @@
         "fideloper/proxy": "^4.0",
         "irazasyed/telegram-bot-sdk": "^3.0",
         "laravel/framework": "^6.2",
-        "laravel/tinker": "^2.0"
+        "laravel/tinker": "^2.0",
+        "predis/predis": "^1.1"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.6",

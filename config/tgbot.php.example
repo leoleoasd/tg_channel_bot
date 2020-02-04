@@ -26,6 +26,7 @@ return [
     'templates' => [
         'text' => "<a href=\"tg://user?id={userId}\">{user}</a> posted at {channel}:\n{text}",
         'reply' => "Let me help you <a href=\"tg://user?id={userId}\">@{user}</a>.",
+        'pet' => "每日顺毛 😺 ({count}/1)",
     ],
     'pin' => true,
 ];

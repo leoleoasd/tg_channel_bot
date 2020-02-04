@@ -110,8 +110,8 @@ return [
     |
     */
     'commands' => [
-        Telegram\Bot\Commands\HelpCommand::class,
-        App\Commands\DebugCommand::class
+        App\Commands\PetCommand::class,
+        \App\Commands\StartCommand::class,
     ],
 
     /*

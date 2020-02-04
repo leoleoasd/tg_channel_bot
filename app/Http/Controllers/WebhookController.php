@@ -11,9 +11,7 @@ use Telegram\Bot\Objects\Message;
 class WebhookController extends Controller
 {
     public function handle(Request $r){
-        $update = Telegram::getWebhookUpdate();
-        if($update->getMessage() and $update->getMessage()->getChat()->getType()=='private')
-            Telegram::commandsHandler(true);
+        $update = Telegram::commandsHandler(true);
         Log::info(json_encode($update));
         $message = $update->getMessage();
         if($message){
@@ -40,24 +38,36 @@ class WebhookController extends Controller
             if(in_array($message->getChat()->getId(), config("tgbot.channels"))){
                 if($message->getPinnedMessage()){
                     if($message->getPinnedMessage()->getFrom()->getId() == config("tgbot.self")){
-                        Telegram::deleteMessage([
-                            'chat_id' => $message->getChat()->getId(),
-                            'message_id' => $message->getMessageId(),
-                        ]);
+                        try{
+                            Telegram::deleteMessage([
+                                'chat_id' => $message->getChat()->getId(),
+                                'message_id' => $message->getMessageId(),
+                            ]);
+                        }catch (\Exception $e){
+                            \Log::error($e);
+                        }
                     }
                 }
-                if($message->getText() == "@admins" or $message->getText() == "@admin"){
-                    $text = "";
-                    foreach(config("tgbot.groups")[$message->getChat()->getId()] as $admin){
-                        $text.="<a href=\"tg://user?id=$admin\">@".config("tgbot.admin_nickname")[$admin]."</a> ";
+                $entities = $message->getEntities() ?? $message->getCaptionEntities();
+                if($entities){
+                    $text = $message->getText() ?? $message->getCaption();
+                    foreach ($entities as $entity){
+                        if($entity['type'] == "mention"){
+                            if(in_array(mb_substr($text,$entity['offset'],$entity['length']),['@admin','@admins'])){
+                                $text = "";
+                                foreach(config("tgbot.groups")[$message->getChat()->getId()] as $admin){
+                                    $text.="<a href=\"tg://user?id=$admin\">@".config("tgbot.admin_nickname")[$admin]."</a> ";
+                                }
+                                $args = [
+                                    'chat_id' => $message->getChat()->getId(),
+                                    'text' => $text,
+                                    'parse_mode' => "HTML",
+                                    'reply_to_message_id' => $message->getMessageId(),
+                                ];
+                                $chatMessage = Telegram::sendMessage($args);
+                            }
+                        }
                     }
-                    $args = [
-                        'chat_id' => $message->getChat()->getId(),
-                        'text' => $text,
-                        'parse_mode' => "HTML",
-                        'reply_to_message_id' => $message->getMessageId(),
-                    ];
-                    $chatMessage = Telegram::sendMessage($args);
                 }
                 if($message->getReplyToMessage()){
                     if($message->getReplyToMessage()->getFrom()->getId() == config("tgbot.self")){
@@ -103,110 +113,129 @@ class WebhookController extends Controller
                         }
                     }
                 }
+                $forward_from = "";
+                $temp = "text";
+                if($message->getForwardFrom()){
+                    $forward_from=$message->getForwardFrom()->getFirstName()." ".$message->getForwardFrom()->getLastName();
+                    $temp = "forward";
+                }
+                if($message->get("forward_sender_name")){
+                    $forward_from=$message->get("forward_sender_name");
+                    $temp = "forward";
+                }
+                if($message->get('forward_from_chat')){
+                    $forward_from=$message->get('forward_from_chat')['title'];
+                    $temp = "forward";
+                }
                 if($message->isType('text')){
                     try {
                         $args = array_merge([
                             'chat_id' => config('tgbot.channels')[$channelId],
-                            'text' => format(config('tgbot.templates.text'), [
+                            'text' => format(config("tgbot.templates.$temp"), [
                                 'user' => config("tgbot.admin_nickname")[config("tgbot.admins")[$message->get('author_signature')] ?? null] ?? null,
                                 'userId' => config('tgbot.admins')[$message->get('author_signature')] ?? null,
                                 'channel' => $message->getChat()->getUsername() ? "@" . $message->getChat()->getUsername() : $message->getChat()->getTitle(),
                                 'text' => htmlspecialchars($message->getText()),
+                                'forward' => $forward_from,
                             ]),
                             'parse_mode' => "HTML"
                         ], $global_args);
                         $chatMessage = Telegram::sendMessage($args);
+                        if(config('tgbot.pin')){
+                            Telegram::pinChatMessage([
+                                'chat_id' => config('tgbot.channels')[$channelId],
+                                'message_id' => $chatMessage->getMessageId(),
+                                'disable_notification' => True,
+                            ]);
+                        }
+                        $forward = new Forward();
+                        $forward->from_chat_id = $message->getChat()->getId();
+                        $forward->from_message_id = $message->getMessageId();
+                        $forward->from_user_id = config('tgbot.admins')[$message->get('author_signature')] ?? 0;
+                        $forward->to_chat_id = $chatMessage->getChat()->getId();
+                        $forward->to_message_id = $chatMessage->getMessageId();
+                        $forward->save();
                     } catch (Telegram\Bot\Exceptions\TelegramSDKException $e) {
                         \Log::error($e);
                         // TODO: handle exceptions.
                     }
-                    if(config('tgbot.pin')){
-                        Telegram::pinChatMessage([
-                            'chat_id' => config('tgbot.channels')[$channelId],
-                            'message_id' => $chatMessage->getMessageId(),
-                            'disable_notification' => True,
-                        ]);
-                    }
-                    $forward = new Forward();
-                    $forward->from_chat_id = $message->getChat()->getId();
-                    $forward->from_message_id = $message->getMessageId();
-                    $forward->from_user_id = config('tgbot.admins')[$message->get('author_signature')] ?? 0;
-                    $forward->to_chat_id = $chatMessage->getChat()->getId();
-                    $forward->to_message_id = $chatMessage->getMessageId();
-                    $forward->save();
                 }else if($message->isType('photo')){
                     try {
                         $args = array_merge([
                             'chat_id' => config('tgbot.channels')[$channelId],
-                            'caption' => format(config('tgbot.templates.text'), [
+                            'caption' => format(config("tgbot.templates.$temp"), [
                                 'user' => config("tgbot.admin_nickname")[config("tgbot.admins")[$message->get('author_signature')] ?? null] ?? null,
                                 'userId' => config('tgbot.admins')[$message->get('author_signature')] ?? null,
                                 'channel' => $message->getChat()->getUsername() ? "@" . $message->getChat()->getUsername() : $message->getChat()->getTitle(),
                                 'text' => htmlspecialchars($message->getCaption()),
+                                'forward' => $forward_from,
                             ]),
                             'photo' => $message->getRawResponse()['photo'][0]['file_id'],
                             'parse_mode' => "HTML"
                         ],$global_args);
                         $chatMessage = Telegram::sendPhoto($args);
+
+                        if(config('tgbot.pin')){
+                            Telegram::pinChatMessage([
+                                'chat_id' => config('tgbot.channels')[$channelId],
+                                'message_id' => $chatMessage->getMessageId(),
+                                'disable_notification' => True,
+                            ]);
+                        }
+                        $forward = new Forward();
+                        $forward->from_chat_id = $message->getChat()->getId();
+                        $forward->from_message_id = $message->getMessageId();
+                        $forward->from_user_id = config('tgbot.admins')[$message->get('author_signature')] ?? 0;
+                        $forward->to_chat_id = $chatMessage->getChat()->getId();
+                        $forward->to_message_id = $chatMessage->getMessageId();
+                        $forward->save();
                     } catch (Telegram\Bot\Exceptions\TelegramSDKException $e) {
                         \Log::error($e);
                         // TODO: handle exceptions.
                     }
-                    if(config('tgbot.pin')){
-                        Telegram::pinChatMessage([
-                            'chat_id' => config('tgbot.channels')[$channelId],
-                            'message_id' => $chatMessage->getMessageId(),
-                            'disable_notification' => True,
-                        ]);
-                    }
-                    $forward = new Forward();
-                    $forward->from_chat_id = $message->getChat()->getId();
-                    $forward->from_message_id = $message->getMessageId();
-                    $forward->from_user_id = config('tgbot.admins')[$message->get('author_signature')] ?? 0;
-                    $forward->to_chat_id = $chatMessage->getChat()->getId();
-                    $forward->to_message_id = $chatMessage->getMessageId();
-                    $forward->save();
                 }else if($message->isType('video')){
                     try {
                         $args = array_merge([
                             'chat_id' => config('tgbot.channels')[$channelId],
-                            'caption' => format(config('tgbot.templates.text'), [
+                            'caption' => format(config("tgbot.templates.$temp"), [
                                 'user' => config("tgbot.admin_nickname")[config("tgbot.admins")[$message->get('author_signature')] ?? null] ?? null,
                                 'userId' => config('tgbot.admins')[$message->get('author_signature')] ?? null,
                                 'channel' => $message->getChat()->getUsername() ? "@" . $message->getChat()->getUsername() : $message->getChat()->getTitle(),
                                 'text' => htmlspecialchars($message->getCaption()),
+                                'forward' => $forward_from,
                             ]),
                             'video' => $message->getRawResponse()['video']['file_id'],
                             'parse_mode' => "HTML"
                         ],$global_args);
                         $chatMessage = Telegram::sendVideo($args);
+                        if(config('tgbot.pin')){
+                            Telegram::pinChatMessage([
+                                'chat_id' => config('tgbot.channels')[$channelId],
+                                'message_id' => $chatMessage->getMessageId(),
+                                'disable_notification' => True,
+                            ]);
+                        }
+                        $forward = new Forward();
+                        $forward->from_chat_id = $message->getChat()->getId();
+                        $forward->from_message_id = $message->getMessageId();
+                        $forward->from_user_id = config('tgbot.admins')[$message->get('author_signature')] ?? 0;
+                        $forward->to_chat_id = $chatMessage->getChat()->getId();
+                        $forward->to_message_id = $chatMessage->getMessageId();
+                        $forward->save();
                     } catch (Telegram\Bot\Exceptions\TelegramSDKException $e) {
                         \Log::error($e);
                         // TODO: handle exceptions.
                     }
-                    if(config('tgbot.pin')){
-                        Telegram::pinChatMessage([
-                            'chat_id' => config('tgbot.channels')[$channelId],
-                            'message_id' => $chatMessage->getMessageId(),
-                            'disable_notification' => True,
-                        ]);
-                    }
-                    $forward = new Forward();
-                    $forward->from_chat_id = $message->getChat()->getId();
-                    $forward->from_message_id = $message->getMessageId();
-                    $forward->from_user_id = config('tgbot.admins')[$message->get('author_signature')] ?? 0;
-                    $forward->to_chat_id = $chatMessage->getChat()->getId();
-                    $forward->to_message_id = $chatMessage->getMessageId();
-                    $forward->save();
                 }else{
                     try{
                         $args = array_merge([
                             'chat_id' => config('tgbot.channels')[$channelId],
-                            'text' => format(config('tgbot.templates.text'), [
+                            'text' => format(config("tgbot.templates.$temp"), [
                                 'user' => config("tgbot.admin_nickname")[config("tgbot.admins")[$message->get('author_signature')] ?? null] ?? null,
                                 'userId' => config('tgbot.admins')[$message->get('author_signature')] ?? null,
                                 'channel' => $message->getChat()->getUsername() ? "@" . $message->getChat()->getUsername() : $message->getChat()->getTitle(),
                                 'text' => "",
+                                'forward' => $forward_from,
                             ]),
                             'parse_mode' => "HTML"
                         ], $global_args);
@@ -241,6 +270,12 @@ class WebhookController extends Controller
         $editPost = $update->get('edited_channel_post');
         if($editPost){
             $editPost = new Message($editPost);
+            $forward_from = "";
+            $temp = "text";
+            if($editPost->getForwardFrom()){
+                $forward_from=$editPost->getForwardFrom()->getFirstName()." ".$editPost->getForwardFrom()->getLastName();
+                $temp = "forward";
+            }
             if($editPost->isType('text')){
                 $forward = Forward::where('from_message_id', $editPost->getMessageId())->where('from_chat_id', $editPost->getChat()->getId())->first();
                 if($forward){
@@ -248,7 +283,7 @@ class WebhookController extends Controller
                         $editMessage = Telegram::editMessageText([
                             'chat_id' => $forward->to_chat_id,
                             'message_id' => $forward->to_message_id,
-                            'text' => format(config('tgbot.templates.text'), [
+                            'text' => format(config("tgbot.templates.$temp"), [
                                 'user' => config("tgbot.admin_nickname")[config("tgbot.admins")[$editPost->get('author_signature')] ?? null] ?? null,
                                 'userId' => config('tgbot.admins')[$editPost->get('author_signature')] ?? null,
                                 'channel' => $editPost->getChat()->getUsername() ? "@" . $editPost->getChat()->getUsername() : $message->getChat()->getTitle(),
@@ -268,7 +303,7 @@ class WebhookController extends Controller
                         $editMessage = Telegram::editMessageCaption([
                             'chat_id' => $forward->to_chat_id,
                             'message_id' => $forward->to_message_id,
-                            'caption' => format(config('tgbot.templates.text'), [
+                            'caption' => format(config("tgbot.templates.$temp"), [
                                 'user' => config("tgbot.admin_nickname")[config("tgbot.admins")[$editPost->get('author_signature')] ?? null] ?? null,
                                 'userId' => config('tgbot.admins')[$editPost->get('author_signature')] ?? null,
                                 'channel' => $editPost->getChat()->getUsername() ? "@" . $editPost->getChat()->getUsername() : $message->getChat()->getTitle(),

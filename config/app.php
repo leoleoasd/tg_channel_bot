@@ -174,7 +174,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\TGBotProvider::class,
-
+        Arcanedev\LogViewer\LogViewerServiceProvider::class,
     ],
 
     /*

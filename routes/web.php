@@ -32,3 +32,17 @@ Route::get('/getWebhook', function(){
 
 
 Route::any(config('tgbot.webhook_url'),"WebhookController@handle");
+
+use Illuminate\Support\Facades\Redis;
+
+Route::get('/test',function (){
+    /*
+    Redis::pipeline(function ($pipe) use(&$message_id,&$chat_id,&$message) {
+        $message_id = $pipe->get('last_message_id');
+        $chat_id = $pipe->get('last_chat_id');
+        $pipe->set('last_message_id',rand());
+        $pipe->set('last_chat_id',rand());
+    });
+    */
+    // eval "return redis.call('set','telegram',123,'ex',10,'nx')" 0
+});
