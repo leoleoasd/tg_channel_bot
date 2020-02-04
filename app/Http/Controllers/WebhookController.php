@@ -51,7 +51,7 @@ class WebhookController extends Controller
                     $text = $message->getText() ?? $message->getCaption();
                     foreach ($entities as $entity){
                         if($entity['type'] == "mention"){
-                            if(in_array(substr($text,$entity['offset'],$entity['length']),['@admin','@admins'])){
+                            if(in_array(mb_substr($text,$entity['offset'],$entity['length']),['@admin','@admins'])){
                                 $text = "";
                                 foreach(config("tgbot.groups")[$message->getChat()->getId()] as $admin){
                                     $text.="<a href=\"tg://user?id=$admin\">@".config("tgbot.admin_nickname")[$admin]."</a> ";
