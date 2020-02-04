@@ -51,14 +51,14 @@ If you use this bot instead of the original discussion group, you can't:
 
 ## 安装 | Installation && Deployment.
 
-1. 按照 [Laravel](//github.com/laravel/laravel) 准备环境.
-2. clone代码, 并把http根目录设置为public文件夹, 关闭 open_base_dir 防跨站相关选项. 配置https.
+1. 按照 [Laravel](//github.com/laravel/laravel) 准备环境. | Prepare your environment as [Laravel](//github.com/laravel/laravel).
+2. clone代码, 并把http根目录设置为public文件夹, 关闭 open_base_dir 防跨站相关选项. 配置https. | Make "public" the base dir of the http server, turn off open_base_dir and apply a https certificate.
 3. `composer install`
-4. 修改.env中的配置 (仅需最上面的网址, mysql相关, 以及最下面的三个)
+4. 修改.env中的配置 (仅需最上面的网址, mysql相关, 以及最下面的三个) | Configure the ".env" file as below
 5. `php artisan migrate`
-6. 将 config/tgbot.php 重命名为 config/tgbot.php 
-7. 修改config/tgbot.php中的配置
-8. 访问 /setWebhook 来配置webhook.
+6. 将 config/tgbot.php.example 重命名为 config/tgbot.php | Rename config/tgbot.php.example to config/tgbot.php
+7. 修改config/tgbot.php中的配置 | Configure the bot as below
+8. 访问 /setWebhook 来配置webhook. | Visit /setWebhook to setup webhook.
 9. Enjoy!
 
 ## 配置 | Configuration.
