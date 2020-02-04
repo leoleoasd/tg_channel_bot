@@ -46,18 +46,26 @@ class WebhookController extends Controller
                         ]);
                     }
                 }
-                if($message->getText() == "@admins" or $message->getText() == "@admin"){
-                    $text = "";
-                    foreach(config("tgbot.groups")[$message->getChat()->getId()] as $admin){
-                        $text.="<a href=\"tg://user?id=$admin\">@".config("tgbot.admin_nickname")[$admin]."</a> ";
+                $entities = $message->getEntities() ?? $message->getCaptionEntities();
+                if($entities){
+                    $text = $message->getText() ?? $message->getCaption();
+                    foreach ($entities as $entity){
+                        if($entity['type'] == "mention"){
+                            if(in_array(substr($text,$entity['offset'],$entity['length']),['@admin','@admins'])){
+                                $text = "";
+                                foreach(config("tgbot.groups")[$message->getChat()->getId()] as $admin){
+                                    $text.="<a href=\"tg://user?id=$admin\">@".config("tgbot.admin_nickname")[$admin]."</a> ";
+                                }
+                                $args = [
+                                    'chat_id' => $message->getChat()->getId(),
+                                    'text' => $text,
+                                    'parse_mode' => "HTML",
+                                    'reply_to_message_id' => $message->getMessageId(),
+                                ];
+                                $chatMessage = Telegram::sendMessage($args);
+                            }
+                        }
                     }
-                    $args = [
-                        'chat_id' => $message->getChat()->getId(),
-                        'text' => $text,
-                        'parse_mode' => "HTML",
-                        'reply_to_message_id' => $message->getMessageId(),
-                    ];
-                    $chatMessage = Telegram::sendMessage($args);
                 }
                 if($message->getReplyToMessage()){
                     if($message->getReplyToMessage()->getFrom()->getId() == config("tgbot.self")){
